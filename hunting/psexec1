@@ -1,0 +1,5 @@
+// Detetect PSEXECSVC File Events to catch PSEXEC
+DeviceFileEvents
+| where Timestamp > ago(60m)
+| where FileName == "PSEXESVC.exe"
+| sort by Timestamp desc
