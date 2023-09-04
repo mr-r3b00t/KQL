@@ -1,0 +1,10 @@
+DeviceNetworkEvents
+| where Timestamp > ago(24h)
+| where RemotePort == "135"
+| where ActionType == "ConnectionSuccess"
+| where Protocol == "Tcp"
+| where InitiatingProcessAccountName != @"system"
+| where InitiatingProcessAccountName != @"network service"
+| where InitiatingProcessAccountName !contains "$"
+| summarize count() by InitiatingProcessAccountName
+| sort by count_ desc
