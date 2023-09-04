@@ -1,0 +1,20 @@
+// created by mRr3b00t 
+// https://www.pwndefend.com/blog
+// twitter is https://twitter.com/UK_Daniel_Card
+// @UK_Daniel_Card
+// use at own risk
+// you often will need to modify to suit your requirements and variables
+
+// Description: Hunt for  schtasks event creations and ignore LOLBIN/Common App Activity
+
+// Version 1.0
+
+DeviceProcessEvents
+| where Timestamp > ago(30d)
+| where ProcessCommandLine contains "schtasks.exe /create"
+| where ProcessCommandLine != @"schtasks.exe /Create /tn ""Microsoft\Office\Office Performance Monitor"" /XML ""C:\ProgramData\Microsoft\ClickToRun\{9AC08E99-230B-47e8-9721-4577B7F124EA}\Microsoft_Office_Office Performance Monitor.xml"""
+| where ProcessCommandLine != @"schtasks.exe /Create /tn ""Microsoft\Office\Office Feature Updates Logon"" /XML ""C:\ProgramData\Microsoft\ClickToRun\{9AC08E99-230B-47e8-9721-4577B7F124EA}\Microsoft_Office_Office Feature Updates Logon.xml"""
+| where ProcessCommandLine != @"schtasks.exe /Create /tn ""Microsoft\Office\Office Feature Updates"" /XML ""C:\ProgramData\Microsoft\ClickToRun\{9AC08E99-230B-47e8-9721-4577B7F124EA}\Microsoft_Office_Office Feature Updates.xml"""
+| where ProcessCommandLine != @"schtasks.exe /Create /tn ""Microsoft\Office\Office Automatic Updates 2.0"" /XML ""C:\Program Files\Common Files\Microsoft Shared\ClickToRun\FrequentOfficeUpdateSchedule.xml"""
+| where ProcessCommandLine != @"schtasks.exe /Create /tn ""Microsoft\Office\Office ClickToRun Service Monitor"" /XML ""C:\Program Files\Common Files\Microsoft Shared\ClickToRun\ServiceWatcherSchedule.xml"""
+//| summarize count() by ProcessCommandLine //useful for baselining
