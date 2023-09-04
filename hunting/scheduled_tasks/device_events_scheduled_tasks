@@ -1,0 +1,20 @@
+#Base #KQL Starting point
+DeviceEvents 
+| where Timestamp > ago(30d) //in the last period of time
+| where ActionType == "ScheduledTaskCreated" // task created
+| where InitiatingProcessAccountSid != "S-1-5-18" // does not equal SYSTEM
+| extend AdditionalFields = parse_json(AdditionalFields)
+| extend TaskName = tostring(AdditionalFields.["TaskName"])
+| sort by Timestamp desc //sort newest to oldest
+
+#### BASELINE EXAMPLE
+
+DeviceEvents
+| where Timestamp > ago(30d) //in the last period of time
+| where ActionType == "ScheduledTaskCreated" // task created
+| where InitiatingProcessAccountSid != "S-1-5-18" // does not equal SYSTEM
+| extend AdditionalFields = parse_json(AdditionalFields)
+| extend TaskName = tostring(AdditionalFields.["TaskName"])
+| sort by Timestamp desc //sort newest to oldest
+| summarize count() by TaskName
+| sort by count_ desc
