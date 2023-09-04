@@ -1,0 +1,5 @@
+DeviceProcessEvents
+| where InitiatingProcessFileName contains "WmiPrvSE.exe"
+| where FileName != "DismHost.exe"
+| where FileName != "WerFault.exe"
+| where InitiatingProcessAccountName == "network service" //find the events run over the network
