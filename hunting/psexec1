@@ -1,5 +1,6 @@
 // Detetect PSEXECSVC File Events to catch PSEXEC
 DeviceFileEvents
-| where Timestamp > ago(60m)
+| where Timestamp > ago(1d)
 | where FileName == "PSEXESVC.exe"
+or InitiatingProcessVersionInfoOriginalFileName == @"psexec.c" // thanks tay
 | sort by Timestamp desc
