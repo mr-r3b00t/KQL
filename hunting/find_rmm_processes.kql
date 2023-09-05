@@ -24,7 +24,7 @@ DeviceProcessEvents
         "TakeControlRDViewer.exe",
         "ZA_Connect.exe",
         "LTSvcMon.exe",
-        "teamviwer.exe",
+        "teamviewer.exe",
         "putty.exe",
         "winvnc.exe",
         "ir_agent.exe",
