@@ -27,6 +27,10 @@ DeviceProcessEvents
         "teamviwer.exe",
         "putty.exe",
         "winvnc.exe",
+        "ir_agent.exe",
+        "konea.exe",
+        "ScreenConnect.ClientService.exe",
+        "ScreenConnect.WindowsClient.exe",
         "LogMeIn.exe"
         )
         | summarize count() by FileName
