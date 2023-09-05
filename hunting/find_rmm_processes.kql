@@ -55,6 +55,8 @@ DeviceProcessEvents
     "PulsewayService.exe",
     "putty.exe",
     "QuickAssist",
+    "BASupSrvc",
+    "BASupSrvcCnfg",
     "Radmin",
     "RealVNC",
     "Remote Manipulator System",
