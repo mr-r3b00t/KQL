@@ -1,0 +1,33 @@
+DeviceProcessEvents
+| where FileName has_any (
+"ScreenConnect.Client.exe",
+        "ScreenConnect.Service.exe",
+        "AgentMon.exe",
+        "ccme_sm.exe",
+        "GetASRSettings.exe",
+        "kworking.exe",
+        "klnagent.exe",
+        "NinjaRMM.exe",
+        "NinjaRMMAgent.exe",
+        "AteraAgent.exe",
+        "AteraRC.exe",
+        "PulsewayService.exe",
+        "Pulseway.TrayApp.exe",
+        "Auvik.Engine.exe",
+        "Auvik.Agent.exe",
+        "Domotz.exe",
+        "DomotzClient.exe",
+        "LTClient.exe",
+        "LTAService.exe",
+        "VncClient.exe",
+        "NAPClt.exe",
+        "TakeControlRDViewer.exe",
+        "ZA_Connect.exe",
+        "LTSvcMon.exe",
+        "teamviwer.exe",
+        "putty.exe",
+        "winvnc.exe",
+        "LogMeIn.exe"
+        )
+        | summarize count() by FileName
+        | sort by count_ desc 
