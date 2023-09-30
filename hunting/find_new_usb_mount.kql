@@ -1,0 +1,16 @@
+// quick and dirty detection for USB Drive Mounted which exlcudes some common VM events
+DeviceEvents
+| where Timestamp > ago (1h)
+    | where ActionType == "UsbDriveMounted"
+    |extend ParsedFields=parse_json(AdditionalFields)
+    | project DeviceName, Timestamp,AdditionalFields, ParsedFields.DriveLetter, ParsedFields.ProductName, ParsedFields.ProductRevision, ParsedFields.SerialNumber, ParsedFields.Volume, ParsedFields.Manufacturer
+    //| where ParsedFields_ProductName !contains "VMware"
+    | where ParsedFields_ProductName != "Virtual DVD-ROM"
+    | where ParsedFields_ProductName != "VMware SATA CD00"
+    | where ParsedFields_ProductName != "Virtual DVD-ROM"
+| where ParsedFields_ProductName != "Virtual DVD-ROM "
+| where ParsedFields_ProductName != "DVDRAM GUD0N    "
+    //| where ParsedFields_Manufacturer !contains "Msft"
+| sort by Timestamp desc 
+    //| summarize count() by DeviceName
+    //| sort by count_ desc 
