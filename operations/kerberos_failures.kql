@@ -1,6 +1,6 @@
 SecurityEvent
 | where Channel == "Security"
-| where TimeGenerated < ago(30d)
+| where TimeGenerated > ago(30d)
 | sort by TimeGenerated desc
 | where EventID == 4771
 | summarize count() by bin(TimeGenerated, 60m)
