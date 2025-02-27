@@ -1,0 +1,12 @@
+DeviceNetworkInfo
+| where DeviceName contains "PCNAME"
+| where TimeGenerated > ago (90d)
+| where NetworkAdapterType == "Wireless80211"
+| where ConnectedNetworks != ''
+| extend ParsedNetwork = parse_json(ConnectedNetworks)
+| extend NetworkName = tostring(ParsedNetwork[0].Name),
+         Description = tostring(ParsedNetwork[0].Description),
+         IsConnectedToInternet = toboolean(ParsedNetwork[0].IsConnectedToInternet),
+         Category = tostring(ParsedNetwork[0].Category)
+| project Timestamp, DeviceName, NetworkAdapterName, NetworkName, Description, IsConnectedToInternet, Category, IPAddresses, MacAddress
+| order by Timestamp desc
