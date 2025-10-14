@@ -2,7 +2,7 @@
 // ID: cachefix-unified-001
 // Status: Testing
 // Description: Unified detection for Sysmon Event ID 1 and Windows Security 4688. Flags processes invoking web/LOLBIN clients with encoded delimiters (possible cache smuggling + click-fix chaining).
-// Author: Shanholo
+// Author: Shanholo (then converted to KQL with GROK by mrr3b00t)
 // Date: 2025/10/12
 // Tags: attack.T1204, attack.T1105, detection.cache_smuggling, detection.clickjacking
 
