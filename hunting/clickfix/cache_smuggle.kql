@@ -1,0 +1,52 @@
+// Title: Windows Process Start – Encoded URLs + Click-Fix Paths (Cache-Smuggling Chain)
+// ID: cachefix-unified-001
+// Status: Testing
+// Description: Unified detection for Sysmon Event ID 1 and Windows Security 4688. Flags processes invoking web/LOLBIN clients with encoded delimiters (possible cache smuggling + click-fix chaining).
+// Author: Shanholo
+// Date: 2025/10/12
+// Tags: attack.T1204, attack.T1105, detection.cache_smuggling, detection.clickjacking
+
+DeviceProcessEvents
+| where
+    // Image/Process name across common schemas (Sysmon, 4688 raw, ECS/Winlogbeat)
+    (
+        InitiatingProcessFileName has_any ("curl.exe", "wget.exe", "powershell.exe", "pwsh.exe", "python.exe", "mshta.exe", "rundll32.exe", "certutil.exe", "bitsadmin.exe", "chrome.exe", "msedge.exe", "firefox.exe")
+        or FileName has_any ("curl.exe", "wget.exe", "powershell.exe", "pwsh.exe", "python.exe", "mshta.exe", "rundll32.exe", "certutil.exe", "bitsadmin.exe", "chrome.exe", "msedge.exe", "firefox.exe")
+    )
+    and
+    (
+        // Command line with encoded delimiters
+        (
+            ProcessCommandLine has_any ("%3f", "%253f", "%2f", "%252f", "%3b", "%253b", "%2e%2e", "%00")
+            and
+            (
+                // Click-fix style endpoints
+                ProcessCommandLine has_any ("/fix", "/quick-fix", "/reactivate", "/reset", "/account/enable", "/user/enable", "/profile/fix", "/session/refresh")
+                or
+                // Smuggling headers
+                ProcessCommandLine has_any ("X-Original-URL", "X-Rewrite-URL", "X-Forwarded-Host", "X-Forwarded-Prefix", "--header", "-H ", "Invoke-WebRequest", "Invoke-RestMethod", "requests.get(", "urllib.request")
+            )
+        )
+        or
+        (
+            // Click-fix style endpoints and smuggling headers
+            ProcessCommandLine has_any ("/fix", "/quick-fix", "/reactivate", "/reset", "/account/enable", "/user/enable", "/profile/fix", "/session/refresh")
+            and
+            ProcessCommandLine has_any ("X-Original-URL", "X-Rewrite-URL", "X-Forwarded-Host", "X-Forwarded-Prefix", "--header", "-H ", "Invoke-WebRequest", "Invoke-RestMethod", "requests.get(", "urllib.request")
+        )
+        or
+        // Classic LOLBINs URL
+        ProcessCommandLine has_any ("url.dll,FileProtocolHandler http", "mshta http", "mshta https", "rundll32 url.dll", "certutil -urlcache")
+    )
+| project
+    Timestamp,
+    FileName,
+    InitiatingProcessFileName,
+    ProcessCommandLine,
+    InitiatingProcessCommandLine,
+    AccountName,
+    ProcessId,
+    InitiatingProcessId,
+    MD5
+| extend Level = "high"
+// False Positives: Legit admin/dev/API workflows using encoded URLs or custom headers, internal tools legitimately hitting /reset or session refresh endpoints, security scanners, and red-team exercises.
