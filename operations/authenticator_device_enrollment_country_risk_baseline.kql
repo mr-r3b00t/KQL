@@ -1,0 +1,31 @@
+let Lookback=90d;
+let CountryBaseline=EntraIdSignInEvents
+| where Timestamp > ago(Lookback)
+| where isnotempty(AccountUpn)
+| where isnotempty(IPAddress)
+| extend Geo=geo_info_from_ip_address(IPAddress)
+| extend CountryName=tostring(Geo["country"])
+| where isnotempty(CountryName)
+| summarize BaselineCountries=make_set(CountryName,256),BaselineCountryCount=dcount(CountryName) by AccountUpn;
+AuditLogs
+| where TimeGenerated > ago(Lookback)
+| extend Details=tostring(AdditionalDetails)
+| where Details has_any ("Microsoft Authenticator","PhoneAppNotification","PhoneAppOTP","Authenticator")
+| extend Timestamp=TimeGenerated,
+         AccountUpn=tostring(TargetResources[0].userPrincipalName),
+         InitiatorUpn=coalesce(tostring(InitiatedBy.user.userPrincipalName),tostring(InitiatedBy.app.displayName)),
+         InitiatorIP=coalesce(tostring(InitiatedBy.user.ipAddress),tostring(InitiatedBy.app.ipAddress))
+| extend Geo=iff(isempty(InitiatorIP),dynamic(null),geo_info_from_ip_address(InitiatorIP))
+| extend Country=tostring(Geo["country"]),
+         Latitude=todouble(Geo["latitude"]),
+         Longitude=todouble(Geo["longitude"])
+| join kind=leftouter (CountryBaseline) on $left.AccountUpn==$right.AccountUpn
+| extend BaselineCountries=coalesce(BaselineCountries,dynamic([]))
+| extend HasBaseline=array_length(BaselineCountries)>0
+| extend HasGeo=isnotempty(Country)
+| extend IsNewCountry=iff(HasGeo==false,bool(null),not(set_has_element(BaselineCountries,Country)))
+| extend RiskLevelAggregated=case(Result !~ "success",100,HasGeo==false,50,HasBaseline==false,50,IsNewCountry==true,50,0)
+| extend RiskLevel=case(RiskLevelAggregated==100,"High",RiskLevelAggregated==50,"Medium",RiskLevelAggregated==10,"Low","None/Unknown")
+| extend RiskReason=case(Result !~ "success","Audit operation not success",HasGeo==false,"No geo data for initiator IP",HasBaseline==false,"No 90d country baseline for user",IsNewCountry==true,"New country vs 90d sign-in baseline","Within baseline")
+| project Timestamp,AccountUpn,InitiatorUpn,IPAddress=InitiatorIP,Country,Latitude,Longitude,BaselineCountryCount,BaselineCountries,IsNewCountry,RiskLevelAggregated,RiskLevel,RiskReason,OperationName,Result,CorrelationId,AdditionalDetails
+| sort by Timestamp desc
