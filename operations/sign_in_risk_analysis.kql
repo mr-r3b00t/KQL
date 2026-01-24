@@ -1,0 +1,37 @@
+let ErrorLookup = externaldata(ErrorCode: long, ErrorString: string, Description: string)
+[@"https://raw.githubusercontent.com/mr-r3b00t/entra_sign_in_codes/refs/heads/main/errocodes.csv"]
+with (format="csv", ignoreFirstRecord=true);
+EntraIdSignInEvents
+| where Timestamp > ago(30d)
+| where ErrorCode != 0
+| where RiskLevelAggregated > 1  // Filters for low (10), medium (50), or high (100) aggregated risk
+| join kind=leftouter (ErrorLookup) on $left.ErrorCode == $right.ErrorCode
+| extend ResultTypeDescription = iff(isnull(Description),
+    strcat("Other (", tostring(ErrorCode), ") - lookup code at https://aka.ms/AADsigninsErrorCodes"),
+    strcat(ErrorString, " - ", Description))
+| extend RiskLevel = case(
+    RiskLevelAggregated == 100, "High",
+    RiskLevelAggregated == 50,  "Medium",
+    RiskLevelAggregated == 10,  "Low",
+    "None/Unknown")
+| project Timestamp,
+          AccountUpn,
+          IPAddress,
+          ClientAppUsed,
+          City,
+          State,
+          Country,
+          RiskLevelAggregated,
+          RiskLevel,
+          ErrorCode,
+          ResultTypeDescription,
+          Browser,
+          DeviceTrustType,
+          DeviceName,
+          EndpointCall,
+          EntraIdDeviceId,
+          ConditionalAccessStatus,
+          AuthenticationRequirement,
+          RiskEventTypes,
+          RiskState
+| sort by Timestamp desc
